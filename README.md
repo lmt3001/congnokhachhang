@@ -90,6 +90,9 @@ sẽ chưa có ai duyệt được ai:
 
 ## Deploy lên GitHub Pages
 
+> 📘 Hướng dẫn từng bước đầy đủ, kèm bảng xử lý sự cố:
+> [`docs/HUONG-DAN-DEPLOY.md`](docs/HUONG-DAN-DEPLOY.md)
+
 1. Tạo repo rỗng trên github.com rồi:
 
    ```bash
