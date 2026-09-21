@@ -5,7 +5,7 @@ bản Excel (sổ nhật ký bán hàng, bảng tổng hợp công nợ, danh m�
 mặt hàng) nhưng dùng được trên nhiều máy, có đăng nhập và phân quyền.
 
 **Công nghệ:** Vue 3 + Vite · Supabase (Auth + Postgres + RLS) · deploy miễn phí
-trên GitHub Pages.
+trên Vercel.
 
 ---
 
@@ -88,39 +88,38 @@ sẽ chưa có ai duyệt được ai:
 
 ---
 
-## Deploy lên GitHub Pages
+## Deploy lên Vercel
 
 > 📘 Hướng dẫn từng bước đầy đủ, kèm bảng xử lý sự cố:
 > [`docs/HUONG-DAN-DEPLOY.md`](docs/HUONG-DAN-DEPLOY.md)
 
-1. Tạo repo rỗng trên github.com rồi:
-
-   ```bash
-   git init
-   git add .
-   git commit -m "Khởi tạo web quản lý công nợ"
-   git branch -M main
-   git remote add origin https://github.com/<tài-khoản>/<tên-repo>.git
-   git push -u origin main
-   ```
-
-2. Trên GitHub: **Settings → Pages → Source** chọn **GitHub Actions**.
-3. **Settings → Secrets and variables → Actions → Variables**, thêm hai biến
+1. Push mã nguồn lên GitHub.
+2. [vercel.com](https://vercel.com) → **Add New… → Project** → **Import** repo.
+   Cấu hình build lấy tự động từ [`vercel.json`](vercel.json), không cần sửa gì.
+3. Trước khi bấm Deploy, mở **Environment Variables** và thêm
    `VITE_SUPABASE_URL` và `VITE_SUPABASE_ANON_KEY`.
-4. Trên Supabase: **Authentication → URL Configuration**, thêm địa chỉ
-   GitHub Pages vào **Site URL** và **Redirect URLs** (cần cho link xác thực
-   email và đặt lại mật khẩu).
-5. Push lên `main` là workflow tự chạy test → build → deploy.
+4. Deploy xong, lấy địa chỉ Vercel rồi khai báo ở Supabase →
+   **Authentication → URL Configuration** (Site URL + Redirect URLs). Thiếu bước
+   này thì link xác thực email sẽ đá người dùng về `localhost`.
+
+Từ đó mỗi lần push lên `main` là Vercel tự build lại.
 
 ### Vài điều cần biết
 
-- Tài khoản GitHub miễn phí chỉ bật được Pages cho **repo public**. Điều đó chấp
-  nhận được ở đây: repo chỉ chứa mã nguồn và anon key (vốn công khai theo thiết
-  kế), còn **dữ liệu công nợ nằm trong Postgres và bị RLS chặn**.
+- Hai biến môi trường trên **không phải bí mật**: chúng được nhúng vào
+  JavaScript gửi tới trình duyệt, đúng như Supabase thiết kế cho publishable
+  key. Việc chặn truy cập nằm hoàn toàn ở RLS trong Postgres. Tuyệt đối không
+  đưa `service_role` / `sb_secret_...` key lên đây.
+- Đổi biến môi trường xong phải **Redeploy** thì mới có hiệu lực, vì biến được
+  nhúng lúc build.
 - File `CongNoKhachHang.xlsm` đã được cho vào `.gitignore` vì chứa tên, số điện
   thoại, địa chỉ khách hàng và macro VBA.
 - Supabase Free tạm dừng project nếu không hoạt động 7 ngày liên tục; đăng nhập
   lại vào dashboard là chạy tiếp.
+- [`.github/workflows/ci.yml`](.github/workflows/ci.yml) chạy `npm test` trên
+  mỗi lần push, vì Vercel chỉ chạy `npm run build`. Cấu hình GitHub Pages vẫn
+  còn trong [`deploy.yml`](.github/workflows/deploy.yml) nhưng chuyển sang chạy
+  tay, để không deploy song song hai nơi.
 
 ---
 

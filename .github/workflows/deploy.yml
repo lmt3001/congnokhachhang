@@ -1,8 +1,9 @@
-name: Deploy lên GitHub Pages
+name: Deploy lên GitHub Pages (phương án dự phòng)
 
+# Nơi deploy chính là Vercel — xem vercel.json và docs/HUONG-DAN-DEPLOY.md.
+# Workflow này chỉ chạy khi bấm tay, để không deploy song song hai nơi.
+# Muốn quay lại dùng GitHub Pages thì thêm lại `push: branches: [main]`.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 # Cần cho actions/deploy-pages

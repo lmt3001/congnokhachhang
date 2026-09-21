@@ -1,0 +1,31 @@
+name: Kiểm thử
+
+# Vercel lo việc build và deploy. Workflow này chỉ chạy kiểm thử trên mỗi lần
+# push để bắt lỗi sớm, vì Vercel chạy `npm run build` chứ không chạy `npm test`.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  kiem-thu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Chạy kiểm thử
+        run: npm test
+
+      - name: Thử build
+        # Không cần biến Supabase thật: chỉ cần chắc chắn code biên dịch được.
+        env:
+          VITE_SUPABASE_URL: https://vi-du.supabase.co
+          VITE_SUPABASE_ANON_KEY: khoa-gia-de-build
+        run: npm run build

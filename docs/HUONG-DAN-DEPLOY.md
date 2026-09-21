@@ -1,6 +1,6 @@
 # Hướng dẫn đưa web lên mạng để dùng thật
 
-Hướng dẫn từng bước để chạy app trên GitHub Pages với dữ liệu thật trên Supabase.
+Hướng dẫn từng bước để chạy app trên **Vercel** với dữ liệu thật trên Supabase.
 
 **Trạng thái hiện tại của bạn**
 
@@ -11,8 +11,9 @@ Hướng dẫn từng bước để chạy app trên GitHub Pages với dữ li�
 | File `.env.local` ở máy | ✅ đã tạo đúng |
 | Repo GitHub | ✅ `github.com/lmt3001/congnokhachhang` |
 | Vá trigger + cấp quyền admin đầu tiên | ⬜ **Bước 1** |
-| Bật GitHub Pages | ⬜ **Bước 3** |
-| Khai báo Variables trên GitHub | ⬜ **Bước 4** |
+| Đẩy mã nguồn lên GitHub | ⬜ **Bước 2** |
+| Tạo project trên Vercel | ⬜ **Bước 3** |
+| Khai báo biến môi trường trên Vercel | ⬜ **Bước 4** |
 | Cấu hình URL trên Supabase | ⬜ **Bước 5** |
 
 ---
@@ -97,7 +98,10 @@ và thấy chữ **Quản trị viên** ở góc dưới bên trái.
 git push
 ```
 
-Có một commit dọn dẹp đang chờ (gỡ 4,6 MB công cụ Claude Code khỏi repo public).
+Có hai commit đang chờ push (dọn 4,6 MB công cụ Claude Code khỏi repo public,
+và thêm cấu hình Vercel).
+
+Vercel lấy mã nguồn từ GitHub nên **phải push xong mới làm được Bước 3**.
 
 > **Lưu ý về lịch sử git:** commit đầu tiên đã đẩy lên vẫn còn chứa các file đó
 > trong lịch sử. Chúng chỉ là dữ liệu thiết kế dạng CSV, không phải bí mật, nên
@@ -106,74 +110,92 @@ Có một commit dọn dẹp đang chờ (gỡ 4,6 MB công cụ Claude Code kh�
 
 ---
 
-## Bước 3 — Bật GitHub Pages
+## Bước 3 — Tạo project trên Vercel
 
-1. Mở https://github.com/lmt3001/congnokhachhang
-2. **Settings** (tab trên cùng) → **Pages** (menu trái)
-3. Mục **Build and deployment** → **Source** → chọn **GitHub Actions**
-4. Không cần chọn nhánh hay thư mục, cũng không cần bấm Save
+1. Vào https://vercel.com → **Sign Up** / **Log in**, chọn **Continue with GitHub**
+2. Bấm **Add New…** → **Project**
+3. Trong danh sách repo, tìm **congnokhachhang** → bấm **Import**
 
-> Tài khoản GitHub miễn phí chỉ bật được Pages cho **repo public**. Nếu repo
-> đang private, GitHub sẽ báo cần nâng cấp Pro.
+   > Không thấy repo? Bấm **Adjust GitHub App Permissions** và cấp quyền cho
+   > Vercel truy cập repo đó.
+
+4. Ở màn hình **Configure Project**, Vercel tự đọc [`vercel.json`](../vercel.json)
+   nên **không cần sửa gì** trong phần Build & Output Settings:
+
+   | Mục | Giá trị tự nhận |
+   |---|---|
+   | Framework Preset | Vite |
+   | Build Command | `npm run build` |
+   | Output Directory | `dist` |
+   | Install Command | `npm ci` |
+
+5. **Khoan bấm Deploy** — mở mục **Environment Variables** trước và làm Bước 4.
 
 ---
 
-## Bước 4 — Khai báo biến môi trường trên GitHub
+## Bước 4 — Khai báo biến môi trường trên Vercel
 
-File `.env.local` chỉ có trên máy bạn và đã bị `.gitignore` chặn, nên GitHub
-không biết gì về nó. Phải khai báo lại:
+File `.env.local` chỉ có trên máy bạn và đã bị `.gitignore` chặn, nên Vercel
+không biết gì về nó. Phải khai báo lại.
 
-1. **Settings** → **Secrets and variables** → **Actions**
-2. Chọn tab **Variables** (không phải Secrets) → **New repository variable**
-3. Tạo hai biến:
+Ngay trong màn hình **Configure Project** (hoặc sau này ở **Settings →
+Environment Variables**), thêm hai biến:
 
-   | Name | Value |
-   |---|---|
-   | `VITE_SUPABASE_URL` | `https://lszwvjooihyfbuekaucw.supabase.co` |
-   | `VITE_SUPABASE_ANON_KEY` | `sb_publishable_...` (key của bạn) |
+| Key | Value |
+|---|---|
+| `VITE_SUPABASE_URL` | `https://lszwvjooihyfbuekaucw.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | `sb_publishable_...` (key của bạn) |
 
-> **Vì sao là Variables chứ không phải Secrets?** Hai giá trị này được nhúng
-> thẳng vào JavaScript gửi tới trình duyệt nên về bản chất là công khai —
-> Supabase thiết kế publishable key đúng như vậy. Việc chặn truy cập nằm hoàn
-> toàn ở Row Level Security trong Postgres. Để ở Secrets cũng chạy được nhưng
-> gây hiểu nhầm rằng chúng bí mật, và log sẽ bị che thành `***` khó soát lỗi.
+Để nguyên cả ba môi trường **Production / Preview / Development** được chọn.
 
-Workflow có kiểm tra sẵn: thiếu biến nào nó sẽ dừng với thông báo rõ ràng chứ
-không build ra một trang trắng.
+Xong thì bấm **Deploy**. Lần build đầu mất khoảng 1–2 phút.
+
+> **Hai giá trị này có phải bí mật không?** Không. Chúng được nhúng thẳng vào
+> JavaScript gửi tới trình duyệt nên về bản chất là công khai — Supabase thiết
+> kế publishable key đúng như vậy. Việc chặn truy cập nằm hoàn toàn ở Row Level
+> Security trong Postgres. Thứ **tuyệt đối không được** đưa lên đây là
+> `service_role` / `sb_secret_...` key, vì nó bỏ qua toàn bộ RLS.
+
+> **Đổi biến sau này:** sửa ở Settings xong phải vào tab **Deployments** →
+> bấm **⋯** ở bản mới nhất → **Redeploy**. Biến được nhúng lúc build nên không
+> tự áp dụng cho bản đã deploy.
 
 ---
 
 ## Bước 5 — Cấu hình URL trên Supabase
 
-Địa chỉ web của bạn sẽ là:
+Sau khi deploy xong, Vercel cho bạn một địa chỉ dạng:
 
 ```
-https://lmt3001.github.io/congnokhachhang/
+https://congnokhachhang.vercel.app
 ```
+
+Địa chỉ chính xác nằm ở đầu trang project trên Vercel (mục **Domains**).
 
 Vào Supabase → **Authentication** → **URL Configuration**:
 
 | Trường | Giá trị |
 |---|---|
-| **Site URL** | `https://lmt3001.github.io/congnokhachhang/` |
-| **Redirect URLs** | thêm `https://lmt3001.github.io/congnokhachhang/**` |
+| **Site URL** | `https://congnokhachhang.vercel.app` |
+| **Redirect URLs** | thêm `https://congnokhachhang.vercel.app/**` |
 
 Bước này cần cho liên kết **xác thực email** và **đặt lại mật khẩu** — thiếu nó
 thì người dùng bấm vào link trong mail sẽ bị đá về `localhost`.
 
-Nếu vẫn muốn chạy ở máy song song, thêm luôn `http://localhost:5173/**` vào
-Redirect URLs.
+Thêm luôn hai dòng nữa vào Redirect URLs:
+
+- `http://localhost:5173/**` — để vẫn chạy được ở máy
+- `https://*-lmt3001s-projects.vercel.app/**` — để các bản Preview mà Vercel
+  tạo cho mỗi nhánh cũng đăng nhập được (tên chính xác xem ở phần Domains)
 
 ---
 
-## Bước 6 — Chạy deploy và kiểm tra
+## Bước 6 — Kiểm tra
 
-Push lên nhánh `main` là workflow tự chạy. Theo dõi ở tab **Actions** của repo.
+Mỗi lần push lên `main`, Vercel tự build và cập nhật trang sau 1–2 phút. Theo
+dõi ở tab **Deployments** của project trên Vercel.
 
-Ba job chạy lần lượt: **Kiểm thử** → **Build** → **Deploy**. Lần đầu mất khoảng
-1–2 phút.
-
-Xong thì mở https://lmt3001.github.io/congnokhachhang/ và kiểm tra:
+Mở địa chỉ Vercel và kiểm tra:
 
 - [ ] Hiện màn hình đăng nhập (không phải trang trắng, không phải "Chưa cấu hình Supabase")
 - [ ] Đăng nhập được bằng tài khoản admin
@@ -187,7 +209,7 @@ Xong thì mở https://lmt3001.github.io/congnokhachhang/ và kiểm tra:
 
 ## Bước 7 — Thêm người dùng khác
 
-1. Gửi cho họ địa chỉ `https://lmt3001.github.io/congnokhachhang/`
+1. Gửi cho họ địa chỉ Vercel của bạn
 2. Họ tự bấm **Đăng ký**
 3. Bạn vào tab **Người dùng** → tài khoản mới nằm ở đầu danh sách với nhãn
    *Chờ duyệt* → bấm **Duyệt**
@@ -202,9 +224,10 @@ Số tài khoản đang chờ duyệt hiện thành huy hiệu đỏ cạnh mụ
 
 | Triệu chứng | Nguyên nhân & cách xử lý |
 |---|---|
-| Trang trắng, Console báo lỗi 404 ở file `.js` | Chưa chọn Source = **GitHub Actions** ở Bước 3 |
-| Hiện màn hình "Chưa cấu hình Supabase" | Thiếu Variables ở Bước 4, hoặc gõ sai tên biến (phải là `VITE_`, không phải `NEXT_PUBLIC_`) |
-| Workflow đỏ ở job **Build** | Đọc log — workflow tự báo rõ nếu thiếu biến |
+| Hiện màn hình "Chưa cấu hình Supabase" | Thiếu biến ở Bước 4, hoặc gõ sai tên biến (phải là `VITE_`, không phải `NEXT_PUBLIC_`) |
+| Đã thêm biến rồi mà vẫn báo "Chưa cấu hình" | Biến được nhúng lúc build. Vào **Deployments** → **⋯** → **Redeploy** |
+| Deploy đỏ trên Vercel | Mở **Build Logs**. Hay gặp nhất là `npm ci` hỏng do `package-lock.json` chưa được commit |
+| Trang trắng, Console 404 ở file `.js` | Kiểm tra Output Directory là `dist` trong Settings → Build & Deployment |
 | Đăng nhập báo "Email hoặc mật khẩu không đúng" dù gõ đúng | Email chưa xác thực. Kiểm tra hộp thư, hoặc tắt *Confirm email* trong Supabase |
 | Bấm link trong email xác thực bị đá về `localhost` | Chưa làm Bước 5 |
 | Đăng nhập được nhưng kẹt ở "Đang chờ duyệt" | Tài khoản chưa được duyệt — nhờ admin duyệt, hoặc chạy lại SQL ở Bước 1b |
@@ -231,8 +254,20 @@ git commit -m "Mô tả thay đổi"
 git push
 ```
 
-Workflow tự chạy lại và cập nhật trang sau 1–2 phút. Dữ liệu nằm trong Supabase
-nên không bị ảnh hưởng khi deploy lại.
+Vercel tự phát hiện commit mới, build và cập nhật trang sau 1–2 phút. Dữ liệu
+nằm trong Supabase nên không bị ảnh hưởng khi deploy lại.
+
+Song song đó, GitHub Actions chạy `npm test` trên mỗi lần push
+([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) — Vercel chỉ chạy
+`npm run build` chứ không chạy kiểm thử, nên workflow này là lưới an toàn.
+
+### Quay lại dùng GitHub Pages
+
+Cấu hình Pages vẫn còn ở [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)
+nhưng đã chuyển sang chạy tay để không deploy song song hai nơi. Muốn dùng lại:
+vào tab **Actions** → chọn workflow đó → **Run workflow**. Nhớ khai báo hai biến
+ở **Settings → Secrets and variables → Actions → Variables** và bật
+**Settings → Pages → Source = GitHub Actions**.
 
 ## Sao lưu dữ liệu
 
