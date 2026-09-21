@@ -1,0 +1,210 @@
+/* ============================================================================
+   Reset + primitive dùng chung
+   ============================================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Giảm độ trễ 300ms khi chạm trên mobile, nhưng vẫn cho pinch-zoom */
+button,
+a,
+[role='button'],
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* --- Ô nhập liệu ---------------------------------------------------------
+   Khai báo ở phạm vi toàn cục thay vì :slotted() trong BaseField, vì
+   :slotted() chỉ khớp phần tử gốc của slot — mà PasswordField và ComboBox
+   đều bọc <input> bên trong một <div>, nên sẽ không được tô kiểu.          */
+/* :where() giữ độ ưu tiên ở mức (0,0,1). Nếu viết thẳng ba :not() thì
+   selector này thành (0,3,1) và sẽ đè cả padding riêng mà component khai báo
+   (ví dụ chừa chỗ cho icon kính lúp), buộc phải dùng !important khắp nơi. */
+input:where(:not([type='checkbox'], [type='radio'], [type='range'])),
+textarea,
+select {
+  width: 100%;
+  min-height: 44px; /* đạt ngưỡng vùng chạm 44px trên cảm ứng */
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-base); /* 16px: tránh iOS tự phóng to khi focus */
+  background: var(--color-surface);
+  color: var(--color-fg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  transition: border-color var(--dur-fast) var(--ease-enter);
+}
+
+textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+input:hover:not(:disabled):not([readonly]),
+textarea:hover:not(:disabled):not([readonly]),
+select:hover:not(:disabled) {
+  border-color: var(--color-fg-subtle);
+}
+
+/* Trạng thái lỗi bám theo aria-invalid nên viền đỏ và thông báo cho screen
+   reader không bao giờ lệch nhau. */
+input[aria-invalid='true'],
+textarea[aria-invalid='true'],
+select[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Chỉ đọc khác hẳn với vô hiệu hoá: vẫn chọn/copy được, chỉ không sửa được */
+input[readonly],
+textarea[readonly] {
+  background: var(--color-surface-2);
+}
+
+/* Icon lịch của <input type="date"> mặc định rất tối trên nền tối */
+:root[data-theme='dark'] input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.7;
+}
+
+::placeholder {
+  color: var(--color-fg-subtle);
+  opacity: 1;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: var(--leading-tight);
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+/* URL / mã / nội dung người dùng nhập được phép xuống dòng thay vì tràn ngang.
+   Cố ý KHÔNG dùng word-break:break-all để văn xuôi thường vẫn ngắt tự nhiên. */
+.wrap-anywhere {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* --- Focus ---------------------------------------------------------------
+   Không bao giờ bỏ focus ring mà không có thay thế. Dùng :focus-visible để
+   chuột không thấy viền nhưng bàn phím thì luôn thấy.                        */
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Sticky header không được che mất phần tử đang focus (WCAG 2.2 AA) */
+html {
+  scroll-padding-top: calc(var(--header-h) + var(--space-4));
+}
+
+/* --- Chỉ dành cho screen reader ------------------------------------------ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link: ẩn cho tới khi được focus bằng bàn phím */
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: var(--space-4);
+  z-index: var(--z-toast);
+  transform: translateY(-200%);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* --- Số liệu -------------------------------------------------------------
+   Chữ số cùng bề rộng để cột tiền không nhảy khi giá trị đổi.               */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* --- Tôn trọng prefers-reduced-motion ------------------------------------
+   Tắt hiệu ứng nhưng vẫn giữ nguyên trạng thái cuối, UI dùng bình thường.   */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

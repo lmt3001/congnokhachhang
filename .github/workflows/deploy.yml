@@ -1,0 +1,73 @@
+name: Deploy lên GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Cần cho actions/deploy-pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Chỉ chạy một lần deploy tại một thời điểm; không huỷ lần đang chạy dở.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  kiem-thu:
+    name: Kiểm thử
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  build:
+    name: Build
+    needs: kiem-thu
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        env:
+          # Khai báo ở Settings → Secrets and variables → Actions → Variables.
+          # Anon key vốn được thiết kế để công khai; việc chặn truy cập nằm ở
+          # Row Level Security trong Postgres (xem supabase/schema.sql).
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+            echo "::error::Chưa khai báo VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY trong repository Variables."
+            exit 1
+          fi
+          npm run build
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.trienkhai.outputs.page_url }}
+    steps:
+      - id: trienkhai
+        uses: actions/deploy-pages@v4

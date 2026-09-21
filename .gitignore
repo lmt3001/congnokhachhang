@@ -1,0 +1,20 @@
+node_modules/
+dist/
+
+# Ảnh chụp màn hình sinh ra khi chạy .preview/chup-man-hinh.mjs
+.shots/
+.env
+.env.local
+.env.*.local
+
+# Nguồn Excel gốc: chứa tên / SĐT / địa chỉ khách hàng và macro VBA.
+# Repo phải public để dùng GitHub Pages miễn phí nên không đẩy file này lên.
+*.xlsm
+~$*
+
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+.vscode/
+.idea/
