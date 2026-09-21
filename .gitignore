@@ -3,6 +3,11 @@ dist/
 
 # Ảnh chụp màn hình sinh ra khi chạy .preview/chup-man-hinh.mjs
 .shots/
+.shots*.png
+
+# Công cụ Claude Code của máy cá nhân — không liên quan tới ứng dụng
+.claude/
+design-system/
 .env
 .env.local
 .env.*.local

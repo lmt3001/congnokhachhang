@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(PYTHONIOENCODING=utf-8 python .claude/skills/ui-ux-pro-max/scripts/search.py \"internal admin tool data table crud\" --design-system --variance 3 --motion 2 --density 8 -p \"CongNo\" --persist --output-dir .)"
-    ]
-  }
-}
